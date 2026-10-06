@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taller de circuits CC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: quadern de taller — barra de control, enunciat amb l'esquema a tota amplada, full de respostes i la resolució guiada que es desplega pas a pas a sota. */
+:root{
+  --bg:#edf1f4; --grid:rgba(40,80,130,.07); --panel:#ffffff; --panel2:#f4f7f9; --ink:#17202b; --muted:#566273; --line:#d2d9e1;
+  --accent:#1d4e9e; --accent-ink:#ffffff; --accent-soft:#e2ebf8; --hl:#fff0bf;
+  --vcol:#c2410c; --icol:#1d4ed8; --pcol:#9b2c6f;
+  --ok:#157a3d; --ok-soft:#e1f3e7; --bad:#b42318; --bad-soft:#fbe5e2; --warn:#8a5a00; --warn-soft:#fff3d4;
+  --display:'Barlow Semi Condensed','Arial Narrow',sans-serif;
+  --body:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151c; --grid:rgba(140,180,230,.05); --panel:#18202a; --panel2:#1e2832; --ink:#e5eaf0; --muted:#9aa6b5; --line:#2d3946;
+  --accent:#78a6f0; --accent-ink:#0c1420; --accent-soft:#1d2f4c; --hl:#4a3c12;
+  --vcol:#fb8a5c; --icol:#80aaff; --pcol:#f08cc8;
+  --ok:#62d48d; --ok-soft:#163222; --bad:#ff8a80; --bad-soft:#3a1c1a; --warn:#f2c35b; --warn-soft:#3a3014;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151c; --grid:rgba(140,180,230,.05); --panel:#18202a; --panel2:#1e2832; --ink:#e5eaf0; --muted:#9aa6b5; --line:#2d3946;
+  --accent:#78a6f0; --accent-ink:#0c1420; --accent-soft:#1d2f4c; --hl:#4a3c12;
+  --vcol:#fb8a5c; --icol:#80aaff; --pcol:#f08cc8;
+  --ok:#62d48d; --ok-soft:#163222; --bad:#ff8a80; --bad-soft:#3a1c1a; --warn:#f2c35b; --warn-soft:#3a3014;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+body{background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:22px 72px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.8rem,4vw,2.5rem);letter-spacing:.005em}
+h2{font-size:1.35rem}
+h3{font-size:1.12rem}
+p{margin:.45rem 0}
+sub{font-size:.72em}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;margin-bottom:18px}
+.eyebrow{font-family:var(--display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.glab{font-family:var(--display);font-weight:600;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:7px 13px;cursor:pointer;font-weight:600;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--panel);padding:8px 15px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.big{font-family:var(--display);font-size:1.25rem;padding:10px 26px;letter-spacing:.02em}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.spacer{flex:1}
+.codebox{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+.code{font-family:var(--mono);font-size:.88rem;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--ink)}
+.codebox input{width:9.5em;font-family:var(--mono);font-size:.88rem;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.err{color:var(--bad);font-size:.88rem}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+.card > h2{margin-bottom:10px}
+#enunciat{margin-bottom:16px}
+.schem{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:6px 0 12px;overflow-x:auto}
+.schem svg{display:block;width:100%;height:auto;min-width:520px;max-height:520px}
+.data{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px;padding:0;list-style:none}
+.data li{font-variant-numeric:tabular-nums;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:.95rem}
+.qs{margin:.4rem 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.qs li{display:grid;grid-template-columns:1.6em 1fr;gap:4px}
+.qs li b{font-family:var(--display);color:var(--accent)}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+
+.anscols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:18px 32px;align-items:start}
+@media (max-width:860px){.anscols{grid-template-columns:minmax(0,1fr)}}
+.anscols h3{margin:4px 0 10px}
+.ans{display:grid;gap:8px}
+.arow{display:grid;grid-template-columns:minmax(0,1fr) 7.5em 1.8em 1.4em;align-items:center;gap:8px}
+.arow label{font-size:.95rem}
+input.num{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-variant-numeric:tabular-nums;text-align:right;min-width:0}
+input.num.ok{border-color:var(--ok);background:var(--ok-soft)}
+input.num.bad{border-color:var(--bad);background:var(--bad-soft)}
+input.num.warn{border-color:var(--warn);background:var(--warn-soft)}
+.arow .u{color:var(--muted);font-size:.9rem}
+.arow .st{font-weight:700;text-align:center}
+.st.ok{color:var(--ok)} .st.bad{color:var(--bad)} .st.warn{color:var(--warn)}
+.exp{font-size:.8rem;color:var(--muted);text-align:right;display:block;font-variant-numeric:tabular-nums}
+.arow .exp{grid-column:1/-1;margin-top:-4px}
+.rtab{display:grid;grid-template-columns:3.2em repeat(3,minmax(0,1fr));gap:6px 8px;align-items:start}
+.rtab .h{font-family:var(--display);font-weight:600;color:var(--muted);font-size:.9rem;text-align:right;padding-right:4px}
+.rtab .lab{padding-top:6px;font-weight:600}
+.ansmsg{margin-top:10px;font-size:.95rem;min-height:1.5em}
+.ansbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.solvebar{display:flex;justify-content:center;margin:22px 0 8px}
+#steps{display:grid;gap:14px;margin-top:10px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;min-width:0}
+.step header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.num-b{font-family:var(--mono);font-size:.85rem;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px;white-space:nowrap}
+.step p,.step li{max-width:76ch}
+.step ul{margin:.3rem 0;padding-left:1.2rem}
+.eq{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .45rem;background:var(--panel2);border-radius:6px;padding:7px 12px;margin:6px 0;font-variant-numeric:tabular-nums;font-size:1.02rem}
+.eq > span{white-space:nowrap}
+.eq .eqs{color:var(--muted)}
+.fml{font-size:1.1rem}
+mark{background:var(--hl);color:inherit;border-radius:4px;padding:0 4px}
+.tip{border:1px dashed var(--line);border-radius:8px;padding:8px 12px;margin:10px 0 4px;font-size:.95rem;color:var(--muted)}
+.tip strong{color:var(--ink)}
+.tip::before{content:"Recorda · ";font-family:var(--display);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:.8rem;color:var(--accent)}
+.tip.warnt::before{content:"Atenció · ";color:var(--warn)}
+.stepnav{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.progress{flex:1;min-width:140px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress > div{height:100%;background:var(--accent);transition:width .25s}
+.fig{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:10px 0 4px;min-width:0;overflow-x:auto}
+.fig svg{display:block;width:100%;height:auto;max-width:760px;max-height:380px;margin:0 auto}
+.fig figcaption{font-size:.85rem;color:var(--muted);padding:4px 4px 0}
+figure{margin:0}
+.tbl{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.95rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-family:var(--display);font-weight:600;color:var(--muted);font-size:.9rem;letter-spacing:.03em}
+th:first-child,td:first-child{text-align:left}
+tr.grp td{color:var(--muted)}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink)}
+
+svg text{font-family:var(--body)}
+.sch line,.sch path,.sch rect{stroke:var(--ink);stroke-width:2;fill:none}
+.sch rect.body{fill:var(--panel)}
+.sch text{fill:var(--ink);font-size:13px}
+.sch text.val{fill:var(--muted);font-size:11.5px}
+.sch .jn{fill:var(--ink);stroke:none}
+.sch .hi rect.body{stroke:var(--accent);fill:var(--accent-soft);stroke-width:2.5}
+.sch .hi text,.sch .hi text.val{fill:var(--accent);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">1r EEB0 · Automatització i Robòtica Industrial</div>
+      <h1>Circuits de corrent continu</h1>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="group"><span class="glab">Resistències</span>
+      <div class="seg" id="seg-lvl"><button data-v="45" aria-pressed="false">4–5</button><button data-v="67" aria-pressed="false">6–7</button><button data-v="810" aria-pressed="false">8–10</button><button data-v="all" aria-pressed="true">Qualsevol</button></div>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn primary" id="btn-new">Nou exercici</button>
+  </div>
+
+  <article class="card" id="enunciat"></article>
+
+  <section class="card">
+    <h2>Les teves respostes</h2>
+    <p class="small muted">Resol l'exercici a la llibreta i escriu aquí els resultats, en les unitats indicades (Ω, V, A, W). Pots fer servir coma o punt decimal. S'accepta un marge d'error del 2&nbsp;%.</p>
+    <div class="anscols">
+      <div>
+        <h3>Circuit total</h3>
+        <form id="ansgen" class="ans" novalidate></form>
+        <div class="ansbar"><button class="btn primary" id="btn-check" type="button">Comprova</button><button class="btn" id="btn-clear" type="button">Esborra</button></div>
+        <div class="ansmsg" id="ansmsg"></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:14px 0 10px">
+        <div class="codebox"><span>Codi de l'exercici:</span><span class="code" id="code"></span><button class="btn" id="btn-copy" type="button">Copia l'enllaç</button></div>
+        <div class="codebox" style="margin-top:8px">
+          <input id="codein" placeholder="CC-6-4821" aria-label="Codi d'exercici"><button class="btn" id="btn-code" type="button">Obre</button>
+        </div>
+        <div class="err" id="codeerr"></div>
+        <p class="small muted" style="margin-top:6px">Amb el mateix codi tothom obté el mateix exercici.</p>
+      </div>
+      <div>
+        <h3>Cada resistència</h3>
+        <form id="ansres" class="rtab" novalidate></form>
+      </div>
+    </div>
+  </section>
+
+  <div class="solvebar"><button class="btn primary big" id="btn-solve">Resoldre</button></div>
+  <div id="steps"></div>
+  <div class="stepnav" id="stepnav" hidden>
+    <button class="btn primary" id="btn-next">Següent pas</button>
+    <button class="btn" id="btn-all">Mostra tots els passos</button>
+    <div class="progress" aria-hidden="true"><div id="prog"></div></div>
+    <button class="btn" id="btn-hide">Amaga la solució</button>
+  </div>
+</div>
+
+<script>
+/* ---------- formatting ---------- */
+function fmtN(x, d) {
+  if (!isFinite(x)) return '—';
+  if (d === undefined) { const a = Math.abs(x); d = a >= 1 ? 2 : a >= 0.1 ? 3 : a >= 0.01 ? 4 : 5; if (a < 1 && Math.round(a * 10 ** d) >= 10 ** d) d++; }
+  if (Math.abs(x) < 0.5 * Math.pow(10, -d)) x = 0;
+  return x.toLocaleString('ca-ES', {minimumFractionDigits: 0, maximumFractionDigits: d}).replace('-', '−');
+}
+const fmtG = x => fmtN(x, Math.max(0, 3 - Math.floor(Math.log10(Math.abs(x) || 1)))); // 4 xifres significatives
+const MG = (s, k) => `<i>${s}</i>${k ? `<sub>${k}</sub>` : ''}`;
+const eq = (...parts) => `<div class="eq">${parts.map(p => `<span>${p}</span>`).join('<span class="eqs">=</span>')}</div>`;
+const hl = s => `<mark>${s}</mark>`;
+const tip = (s, warn) => `<p class="tip${warn ? ' warnt' : ''}">${s}</p>`;
+const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' i ' + a[a.length - 1];
+const parseNum = s => { s = String(s).trim().replace(/\s/g, '').replace('−', '-').replace(',', '.'); return s === '' ? NaN : Number(s); };
+const sum = a => a.reduce((x, y) => x + y, 0);
+
+/* ---------- seeded generation ---------- */
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hashStr(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+const VS = [6, 9, 12, 24, 36, 48, 100, 110, 125, 220, 230];
+const RS = [4, 5, 6, 8, 10, 12, 15, 18, 20, 22, 24, 27, 30, 33, 39, 40, 47, 50, 56, 60, 68, 75, 82, 100, 120, 150, 180, 200, 220, 270, 330];
+
+// Arbre del circuit: {t:'R'} resistència, {t:'S', ch} sèrie, {t:'P', ch} paral·lel. S i P s'alternen.
+function build(rng, n, kind, depth) {
+  if (n === 1) return {t: 'R'};
+  const kmax = Math.min(n, kind === 'S' ? 4 : 3);
+  let k;
+  if (depth >= 4) { if (n > kmax) return null; k = n; }
+  else k = 2 + Math.floor(rng() * (kmax - 1));
+  const cuts = new Set();
+  while (cuts.size < k - 1) cuts.add(1 + Math.floor(rng() * (n - 1)));
+  const c = [0, ...[...cuts].sort((a, b) => a - b), n];
+  const ch = [];
+  for (let i = 0; i < k; i++) { const m = build(rng, c[i + 1] - c[i], kind === 'S' ? 'P' : 'S', depth + 1); if (!m) return null; ch.push(m); }
+  return {t: kind, ch};
+}
+const isGroup = n => n.t !== 'R';
+const height = n => isGroup(n) ? 1 + Math.max(...n.ch.map(height)) : 0;
+function walk(n, f) { f(n); if (isGroup(n)) n.ch.forEach(c => walk(c, f)); }
+function calcR(n) { if (!isGroup(n)) return n.R; n.ch.forEach(calcR); n.R = n.t === 'S' ? sum(n.ch.map(c => c.R)) : 1 / sum(n.ch.map(c => 1 / c.R)); return n.R; }
+function distribute(n, V, I) {
+  n.V = V; n.I = I; n.P = V * I;
+  if (!isGroup(n)) return;
+  n.ch.forEach(c => n.t === 'S' ? distribute(c, I * c.R, I) : distribute(c, V, V / c.R));
+}
+
+function generate(n, seed) {
+  const rng = mulberry32(hashStr('CC' + n + '-' + seed));
+  const pick = a => a[Math.floor(rng() * a.length)];
+  for (let t = 0; t < 50000; t++) {
+    const root = build(rng, n, rng() < 0.72 ? 'S' : 'P', 1);
+    if (!root) continue;
+    const h = height(root);
+    if (h < 3 || h > 4) continue;
+    const L = layout(root, new Set());
+    if (L.get(root).w > 700 || L.get(root).up + L.get(root).dn > 380) continue;
+    const leaves = [], groups = [];
+    walk(root, x => (isGroup(x) ? groups : leaves).push(x));
+    leaves.forEach(x => { x.R = pick(RS); });
+    calcR(root);
+    if (groups.some(g => g.t === 'P' && Math.max(...g.ch.map(c => c.R)) > 12 * Math.min(...g.ch.map(c => c.R)))) continue;
+    const Vs = VS.filter(V => {
+      distribute(root, V, V / root.R);
+      return root.I >= 0.05 && root.I <= 6 && leaves.every(x => x.P <= 400 && x.V >= 0.03 * V);
+    });
+    if (!Vs.length) continue;
+    const V = pick(Vs);
+    distribute(root, V, V / root.R);
+    // noms: resistències per ordre de l'esquema, grups per ordre de reducció
+    leaves.forEach((x, i) => { x.lab = String(i + 1); });
+    root.isRoot = true; root.lab = 'eq';
+    const order = groups.map((g, i) => ({g, h: height(g), i})).sort((a, b) => a.h - b.h || a.i - b.i).map(o => o.g);
+    order.filter(g => g !== root).forEach((g, i) => { g.lab = 'ABCDEFGHIJ'[i]; });
+    return {n, seed, V, root, leaves, groups: order};
+  }
+  return null;
+}
+const codeOf = p => `CC-${p.n}-${p.seed}`;
+function parseCode(s) {
+  const m = String(s).trim().toUpperCase().match(/^(?:CC-)?(\d{1,2})-(\d{1,6})$/);
+  return m && +m[1] >= 4 && +m[1] <= 10 ? {n: +m[1], seed: +m[2]} : null;
+}
+
+/* ---------- schematic ---------- */
+const EW = 84, LUP = 28, LDN = 28, BP = 18, GAP = 8;
+// col: grups que es dibuixen reduïts a una sola resistència
+function layout(root, col) {
+  const L = new Map();
+  (function m(n) {
+    if (!isGroup(n) || col.has(n)) { L.set(n, {w: EW, up: LUP, dn: LDN}); return; }
+    n.ch.forEach(m);
+    const cs = n.ch.map(c => L.get(c));
+    if (n.t === 'S') { L.set(n, {w: sum(cs.map(c => c.w)), up: Math.max(...cs.map(c => c.up)), dn: Math.max(...cs.map(c => c.dn))}); return; }
+    const H = sum(cs.map(c => c.up + c.dn)) + GAP * (cs.length - 1);
+    let y = -H / 2;
+    const ys = cs.map(c => { const yy = y + c.up; y += c.up + c.dn + GAP; return yy; });
+    L.set(n, {w: Math.max(...cs.map(c => c.w)) + 2 * BP, up: H / 2, dn: H / 2, ys});
+  })(root);
+  return L;
+}
+const ln = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+const dot = (x, y) => `<circle class="jn" cx="${x}" cy="${y}" r="3.5"/>`;
+const rName = n => `<tspan>R</tspan><tspan dy="4" font-size="10">${n.lab}</tspan>`;
+function drawNode(n, x, y, L, col, hi) {
+  const l = L.get(n);
+  if (!isGroup(n) || col.has(n)) {
+    const cx = x + EW / 2;
+    return `<g${hi.has(n) ? ' class="hi"' : ''}>${ln(x, y, cx - 22, y)}${ln(cx + 22, y, x + EW, y)}<rect class="body" x="${cx - 22}" y="${y - 8}" width="44" height="16"/>`
+      + `<text x="${cx}" y="${y - 14}" text-anchor="middle">${rName(n)}</text><text class="val" x="${cx}" y="${y + 24}" text-anchor="middle">${fmtN(n.R)} Ω</text></g>`;
+  }
+  let s = '';
+  if (n.t === 'S') { let cx = x; n.ch.forEach(c => { s += drawNode(c, cx, y, L, col, hi); cx += L.get(c).w; }); return s; }
+  const xL = x + 9, xR = x + l.w - 9, inner = l.w - 2 * BP, k = n.ch.length;
+  s += ln(x, y, xL, y) + ln(xR, y, x + l.w, y);
+  s += ln(xL, y + l.ys[0], xL, y + l.ys[k - 1]) + ln(xR, y + l.ys[0], xR, y + l.ys[k - 1]);
+  s += dot(xL, y) + dot(xR, y);
+  n.ch.forEach((c, i) => {
+    const cy = y + l.ys[i], cw = L.get(c).w, cx0 = x + BP + (inner - cw) / 2;
+    s += ln(xL, cy, cx0, cy) + drawNode(c, cx0, cy, L, col, hi) + ln(cx0 + cw, cy, xR, cy);
+    if (i > 0 && i < k - 1) s += dot(xL, cy) + dot(xR, cy);
+  });
+  return s;
+}
+function schematic(p, col = new Set(), hi = new Set()) {
+  const root = p.root, L = layout(root, col), l = L.get(root);
+  const xl = 64, x0 = xl + 56, yt = l.up + 16, yb = yt + Math.max(l.dn + 24, 92), ym = (yt + yb) / 2, xr = x0 + l.w + 14;
+  let s = ln(xl, yt, x0, yt) + drawNode(root, x0, yt, L, col, hi);
+  s += ln(x0 + l.w, yt, xr, yt) + ln(xr, yt, xr, yb) + ln(xl, yb, xr, yb);
+  // font de corrent continu (pila): placa llarga = borne +
+  s += ln(xl, yt, xl, ym - 6) + ln(xl, ym + 6, xl, yb);
+  s += `<line x1="${xl - 17}" y1="${ym - 6}" x2="${xl + 17}" y2="${ym - 6}"/><line x1="${xl - 9}" y1="${ym + 6}" x2="${xl + 9}" y2="${ym + 6}" style="stroke-width:5"/>`;
+  s += `<text x="${xl + 14}" y="${ym - 13}" font-size="14" font-weight="700">+</text><text x="${xl + 14}" y="${ym + 24}" font-size="14" font-weight="700">−</text>`;
+  s += `<text x="${xl - 24}" y="${ym + 5}" text-anchor="end" font-weight="700">${fmtN(p.V)} V</text>`;
+  s += `<line x1="${xl + 12}" y1="${yt - 11}" x2="${xl + 40}" y2="${yt - 11}" style="stroke:var(--icol)" marker-end="url(#ah)"/><text x="${xl + 22}" y="${yt - 17}" style="fill:var(--icol)" font-weight="700" text-anchor="middle">I</text>`;
+  const defs = `<defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 z" style="fill:var(--icol);stroke:none"/></marker></defs>`;
+  return `<svg class="sch" viewBox="0 0 ${xr + 14} ${yb + 12}" role="img" aria-label="Esquema del circuit">${defs}${s}</svg>`;
+}
+
+/* ---------- solution steps ---------- */
+const nm = n => MG('R', n.lab);
+const vv = n => n.isRoot ? MG('V') : MG('V', n.lab);
+const ii = n => n.isRoot ? MG('I') : MG('I', n.lab);
+const pp = n => MG('P', n.lab);
+const kindTxt = n => n.t === 'S' ? 'sèrie' : 'paral·lel';
+function formula(n, top) {
+  if (!isGroup(n)) return nm(n);
+  const s = n.ch.map(c => formula(c, false)).join(n.t === 'S' ? ' + ' : ' // ');
+  return top ? s : `(${s})`;
+}
+const fig = (svg, cap) => `<figure class="fig">${svg}<figcaption>${cap}</figcaption></figure>`;
+
+function buildSteps(p) {
+  const st = [], root = p.root, gs = p.groups;
+  // 1. estructura
+  let h = `<p>Abans de calcular, mirem com estan connectades les resistències. Dues o més resistències estan:</p><ul>`
+    + `<li><b>en sèrie</b> si estan una darrere l'altra, sense cap derivació entre elles: hi circula <b>la mateixa intensitat</b>;</li>`
+    + `<li><b>en paral·lel</b> si estan connectades entre els mateixos dos nusos: tenen <b>la mateixa tensió</b>.</li></ul>`;
+  h += `<p>En aquest circuit, la resistència total és:</p><div class="eq fml"><span>${nm(root)}</span><span class="eqs">=</span><span>${formula(root, true)}</span></div>`;
+  h += tip(`El símbol // vol dir «en paral·lel amb». Es resol <strong>de dins cap a fora</strong>: primer els parèntesis més interiors, substituint cada grup per una sola resistència equivalent, fins que només en queda una.`);
+  st.push({t: 'Identificar l\'estructura del circuit', h});
+
+  // 2. reducció per rondes
+  const maxH = height(root);
+  for (let r = 1; r <= maxH; r++) {
+    const now = gs.filter(g => height(g) === r);
+    h = r === 1 ? `<p>Comencem pels grups més interiors, que només contenen resistències:</p>` : `<p>Amb els grups anteriors ja reduïts, continuem cap a fora:</p>`;
+    now.forEach(g => {
+      const names = andList(g.ch.map(nm));
+      if (g.t === 'S') {
+        h += `<p>${names} estan <b>en sèrie</b>. Les resistències en sèrie se sumen:</p>`;
+        h += eq(nm(g), g.ch.map(nm).join(' + '), g.ch.map(c => fmtN(c.R)).join(' + '), hl(`${fmtN(g.R)} Ω`));
+      } else if (g.ch.length === 2) {
+        const [a, b] = g.ch;
+        h += `<p>${names} estan <b>en paral·lel</b>. Amb dues resistències fem <b>producte partit per suma</b>:</p>`;
+        h += eq(nm(g), `(${nm(a)} · ${nm(b)}) / (${nm(a)} + ${nm(b)})`, `(${fmtN(a.R)} · ${fmtN(b.R)}) / (${fmtN(a.R)} + ${fmtN(b.R)})`, `${fmtN(a.R * b.R)} / ${fmtN(a.R + b.R)}`, hl(`${fmtN(g.R)} Ω`));
+        if (Math.abs(a.R - b.R) < 1e-9) h += tip(`Quan dues resistències iguals estan en paral·lel, l'equivalent és la meitat: ${fmtN(a.R)} / 2 = ${fmtN(g.R)} Ω.`);
+      } else {
+        const G = 1 / g.R;
+        h += `<p>${names} estan <b>en paral·lel</b>. Amb tres branques fem servir la <b>suma d'inverses</b>:</p>`;
+        h += eq(`1 / ${nm(g)}`, g.ch.map(c => '1 / ' + nm(c)).join(' + '), g.ch.map(c => '1 / ' + fmtN(c.R)).join(' + '), g.ch.map(c => fmtG(1 / c.R)).join(' + '), `${fmtG(G)} Ω<sup>−1</sup>`);
+        h += eq(nm(g), `1 / ${fmtG(G)}`, hl(`${fmtN(g.R)} Ω`));
+      }
+      if (g.t === 'P') h += `<p class="small muted">Comprovació: ${fmtN(g.R)} Ω és més petita que la branca més petita (${fmtN(Math.min(...g.ch.map(c => c.R)))} Ω), com ha de passar sempre en un paral·lel ✓</p>`;
+    });
+    const col = new Set(gs.filter(g => height(g) <= r)), hi = new Set(now);
+    h += fig(schematic(p, col, hi), r === maxH ? 'Circuit equivalent final: la font només veu una resistència.' : `Circuit equivalent després d'aquest pas. En blau, ${now.length > 1 ? 'les resistències equivalents noves' : 'la resistència equivalent nova'}.`);
+    if (r === maxH) h += `<p>La resistència equivalent de tot el circuit és <mark>${nm(root)} = ${fmtN(root.R)} Ω</mark>.</p>`;
+    st.push({t: r === maxH ? 'Resistència equivalent total' : `Reducció del circuit (${r} de ${maxH})`, h});
+  }
+
+  // 3. intensitat total
+  h = `<p>Ara tot el circuit equival a una sola resistència ${nm(root)} connectada a la font. Apliquem la llei d'Ohm:</p>`;
+  h += eq(MG('I'), `${MG('V')} / ${nm(root)}`, `${fmtN(p.V)} / ${fmtN(root.R)}`, hl(`${fmtN(root.I)} A`));
+  h += tip(`Aquesta és la intensitat que surt del borne positiu de la font i hi torna pel negatiu. Ara desfem el camí: tornem enrere grup per grup per repartir tensions i intensitats.`);
+  st.push({t: 'Intensitat total', h});
+
+  // 4. repartiment, de fora cap a dins
+  const expanded = new Set(), queue = [root];
+  while (queue.length) {
+    const g = queue.shift();
+    expanded.add(g);
+    g.ch.forEach(c => { if (isGroup(c)) queue.push(c); });
+    const names = g.ch.map(nm);
+    if (g.isRoot) h = g.t === 'S'
+      ? `<p>Al circuit principal, ${andList(names)} estan en sèrie amb la font: per totes circula la intensitat total ${MG('I')} = ${fmtN(g.I)} A.</p>`
+      : `<p>Al circuit principal, ${andList(names)} estan en paral·lel, connectades directament a la font: totes tenen la tensió ${MG('V')} = ${fmtN(g.V)} V.</p>`;
+    else h = g.t === 'S'
+      ? `<p>${nm(g)} és la sèrie de ${andList(names)}. Abans hem trobat que hi circula ${ii(g)} = ${fmtN(g.I)} A, i aquesta intensitat passa per totes.</p>`
+      : `<p>${nm(g)} és el paral·lel de ${andList(names)}. Abans hem trobat que té una tensió ${vv(g)} = ${fmtN(g.V)} V, i aquesta tensió la tenen totes les branques.</p>`;
+    if (g.t === 'S') {
+      h += eq(...g.ch.map(ii), ii(g), hl(`${fmtN(g.I)} A`));
+      h += `<p>La caiguda de tensió de cada una és ${MG('V')} = ${MG('I')} · ${MG('R')}:</p>`;
+      g.ch.forEach(c => { h += eq(vv(c), `${ii(g)} · ${nm(c)}`, `${fmtN(g.I)} · ${fmtN(c.R)}`, hl(`${fmtN(c.V)} V`)); });
+      h += `<p class="small muted">Comprovació (2a llei de Kirchhoff): ${g.ch.map(vv).join(' + ')} = ${g.ch.map(c => fmtN(c.V)).join(' + ')} = ${fmtN(sum(g.ch.map(c => c.V)))} V = ${vv(g)} ✓</p>`;
+    } else {
+      h += eq(...g.ch.map(vv), vv(g), hl(`${fmtN(g.V)} V`));
+      h += `<p>La intensitat de cada branca és ${MG('I')} = ${MG('V')} / ${MG('R')}:</p>`;
+      g.ch.forEach(c => { h += eq(ii(c), `${vv(g)} / ${nm(c)}`, `${fmtN(g.V)} / ${fmtN(c.R)}`, hl(`${fmtN(c.I)} A`)); });
+      h += `<p class="small muted">Comprovació (1a llei de Kirchhoff): ${g.ch.map(ii).join(' + ')} = ${g.ch.map(c => fmtN(c.I)).join(' + ')} = ${fmtN(sum(g.ch.map(c => c.I)))} A = ${ii(g)} ✓</p>`;
+    }
+    const col = new Set(gs.filter(x => !expanded.has(x)));
+    h += fig(schematic(p, col, new Set(g.ch)), `En blau, els elements que acabem de resoldre${g.ch.some(isGroup) ? ' (els grups encara reduïts es desplegaran als passos següents)' : ''}.`);
+    if (g.isRoot && g.t === 'S' && g.ch.some(isGroup)) h += tip(`En sèrie, la tensió es reparteix: la resistència més gran s'emporta la caiguda de tensió més gran.`);
+    if (g.t === 'P') h += tip(`En paral·lel, la intensitat es reparteix: per la branca de resistència més petita hi passa més corrent.`);
+    st.push({t: g.isRoot ? `Circuit principal (${kindTxt(g)})` : `Dins de ${nm(g)} (${kindTxt(g)})`, h});
+  }
+
+  // 5. potències
+  h = `<p>La potència que dissipa cada resistència (en forma de calor, per efecte Joule) és ${MG('P')} = ${MG('V')} · ${MG('I')}:</p>`;
+  p.leaves.forEach(x => { h += eq(pp(x), `${vv(x)} · ${ii(x)}`, `${fmtN(x.V)} · ${fmtN(x.I)}`, hl(`${fmtN(x.P)} W`)); });
+  h += tip(`També es pot calcular amb ${MG('P')} = ${MG('I')}² · ${MG('R')} o amb ${MG('P')} = ${MG('V')}² / ${MG('R')}. Per exemple, ${pp(p.leaves[0])} = ${fmtN(p.leaves[0].I)}² · ${fmtN(p.leaves[0].R)} = ${fmtN(p.leaves[0].I ** 2 * p.leaves[0].R)} W.`);
+  st.push({t: 'Potència dissipada per cada resistència', h});
+
+  // 6. potència de la font i balanç
+  h = `<p>La potència que subministra la font és el producte de la seva tensió per la intensitat total:</p>`;
+  h += eq(MG('P', 'font'), `${MG('V')} · ${MG('I')}`, `${fmtN(p.V)} · ${fmtN(root.I)}`, hl(`${fmtN(root.P)} W`));
+  h += `<p><b>Balanç de potències.</b> L'energia es conserva: tota la potència que dona la font la dissipen les resistències.</p>`;
+  h += eq(p.leaves.map(pp).join(' + '), p.leaves.map(x => fmtN(x.P)).join(' + '), `${fmtN(sum(p.leaves.map(x => x.P)))} W`);
+  h += `<p class="small muted">${fmtN(sum(p.leaves.map(x => x.P)))} W ≈ ${fmtN(root.P)} W ✓ (petites diferències només poden venir de l'arrodoniment).</p>`;
+  h += tip(`També es pot fer ${MG('P', 'font')} = ${MG('I')}² · ${nm(root)} = ${fmtN(root.I)}² · ${fmtN(root.R)} = ${fmtN(root.I ** 2 * root.R)} W.`);
+  st.push({t: 'Potència total subministrada per la font', h});
+
+  // 7. resum
+  h = `<div class="tbl"><table><thead><tr><th>Element</th><th>R (Ω)</th><th>V (V)</th><th>I (A)</th><th>P (W)</th></tr></thead><tbody>`;
+  p.leaves.forEach(x => { h += `<tr><td>${nm(x)}</td><td>${fmtN(x.R)}</td><td>${fmtN(x.V)}</td><td>${fmtN(x.I)}</td><td>${fmtN(x.P)}</td></tr>`; });
+  gs.filter(g => !g.isRoot).forEach(g => { h += `<tr class="grp"><td>${nm(g)} (${kindTxt(g)}: ${andList(g.ch.map(nm))})</td><td>${fmtN(g.R)}</td><td>${fmtN(g.V)}</td><td>${fmtN(g.I)}</td><td>${fmtN(g.P)}</td></tr>`; });
+  h += `<tr class="tot"><td>Circuit total (font)</td><td>${fmtN(root.R)}</td><td>${fmtN(p.V)}</td><td>${fmtN(root.I)}</td><td>${fmtN(root.P)}</td></tr></tbody></table></div>`;
+  st.push({t: 'Resum de resultats', h});
+  return st;
+}
+
+/* ---------- UI ---------- */
+const $ = s => document.querySelector(s);
+const LVLS = {45: [4, 5], 67: [6, 7], 810: [8, 10], all: [4, 10]};
+const state = {lvl: 'all', p: null, steps: [], shown: 0, fields: []};
+
+function load(n, seed) {
+  const p = generate(n, seed);
+  if (!p) return false;
+  Object.assign(state, {p, steps: buildSteps(p), shown: 0});
+  $('#code').textContent = codeOf(p);
+  try { history.replaceState(null, '', '#' + codeOf(p)); } catch (e) {}
+  renderEnunciat(); renderForms(); renderSteps();
+  return true;
+}
+function newExercise() {
+  const [a, b] = LVLS[state.lvl];
+  for (let i = 0; i < 20; i++) if (load(a + Math.floor(Math.random() * (b - a + 1)), 1000 + Math.floor(Math.random() * 9000))) return;
+}
+function renderEnunciat() {
+  const p = state.p;
+  const qs = [
+    'La resistència equivalent del circuit.',
+    'La intensitat total que subministra la font.',
+    'La caiguda de tensió en cada resistència.',
+    'La intensitat que circula per cada resistència.',
+    'La potència dissipada per cada resistència.',
+    'La potència total subministrada per la font. Comprova que és igual a la suma de les potències dissipades.'
+  ];
+  $('#enunciat').innerHTML = `<h2>Enunciat · Circuit mixt amb ${p.n} resistències</h2>
+    <div class="schem">${schematic(p)}</div>
+    <p>El circuit mixt de l'esquema està alimentat per una font de tensió contínua de <b>${fmtN(p.V)} V</b> i té ${p.n} resistències connectades en sèrie i en paral·lel.</p>
+    <ul class="data">${[`<i>V</i> = ${fmtN(p.V)} V`].concat(p.leaves.map(x => `${nm(x)} = ${fmtN(x.R)} Ω`)).map(d => `<li>${d}</li>`).join('')}</ul>
+    <p style="margin-top:12px"><b>Calcula:</b></p>
+    <ol class="qs">${qs.map((q, i) => `<li><b>${'abcdef'[i]})</b><span>${q}</span></li>`).join('')}</ol>`;
+}
+function renderForms() {
+  const p = state.p, r = p.root;
+  const gen = [
+    {id: 'a-req', lab: `Resistència equivalent ${nm(r)}`, u: 'Ω', v: r.R},
+    {id: 'a-it', lab: `Intensitat total ${MG('I')}`, u: 'A', v: r.I},
+    {id: 'a-pf', lab: `Potència de la font ${MG('P', 'font')}`, u: 'W', v: r.P}
+  ];
+  $('#ansgen').innerHTML = gen.map(c => `<div class="arow"><label for="${c.id}">${c.lab}</label><input class="num" id="${c.id}" inputmode="decimal" autocomplete="off"><span class="u">${c.u}</span><span class="st" id="${c.id}-st"></span><span class="exp" id="${c.id}-exp" hidden></span></div>`).join('');
+  let h = `<span></span><span class="h">V (V)</span><span class="h">I (A)</span><span class="h">P (W)</span>`;
+  const res = [];
+  p.leaves.forEach(x => {
+    h += `<span class="lab">${nm(x)}</span>`;
+    [['v', 'V', 'tensió', 'V'], ['i', 'I', 'intensitat', 'A'], ['p', 'P', 'potència', 'W']].forEach(([k, key, w, u]) => {
+      const id = `a-${k}${x.lab}`;
+      res.push({id, v: x[key], u});
+      h += `<span><input class="num" id="${id}" inputmode="decimal" autocomplete="off" aria-label="${w} a R${x.lab} (${u})"><span class="exp" id="${id}-exp" hidden></span></span>`;
+    });
+  });
+  $('#ansres').innerHTML = h;
+  state.fields = gen.concat(res);
+  $('#ansmsg').textContent = '';
+}
+function renderSteps() {
+  $('#steps').innerHTML = state.steps.slice(0, state.shown).map((st, i) => `<section class="step" id="step-${i}"><header><span class="num-b">Pas ${i + 1} de ${state.steps.length}</span><h3>${st.t}</h3></header>${st.h}</section>`).join('');
+  $('#stepnav').hidden = state.shown === 0;
+  $('#btn-solve').hidden = state.shown > 0;
+  const done = state.shown >= state.steps.length;
+  $('#btn-next').disabled = done; $('#btn-all').disabled = done;
+  $('#btn-next').textContent = done ? 'Resolució completa' : 'Següent pas';
+  $('#prog').style.width = (100 * state.shown / state.steps.length) + '%';
+  state.fields.forEach(f => { const ex = $('#' + f.id + '-exp'); ex.hidden = !done; if (done) ex.textContent = (f.lab ? 'Correcte: ' : '') + fmtN(f.v) + ' ' + f.u; });
+}
+function scrollToStep(i) {
+  const el = document.getElementById('step-' + i);
+  if (el) el.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start'});
+}
+function clearAnswers() {
+  state.fields.forEach(f => { $('#' + f.id).value = ''; $('#' + f.id).className = 'num'; const st = $('#' + f.id + '-st'); if (st) { st.textContent = ''; st.className = 'st'; } });
+  $('#ansmsg').textContent = '';
+}
+function checkAnswers() {
+  let tried = 0, good = 0, units = false;
+  state.fields.forEach(f => {
+    const inp = $('#' + f.id), st = $('#' + f.id + '-st'), v = parseNum(inp.value);
+    inp.className = 'num'; if (st) { st.textContent = ''; st.className = 'st'; }
+    if (isNaN(v)) return;
+    tried++;
+    const tol = 0.02 * Math.abs(f.v) + 1e-9;
+    let res = Math.abs(v - f.v) <= tol ? 'ok' : (Math.abs(v / 1000 - f.v) <= tol || Math.abs(v * 1000 - f.v) <= tol) ? 'warn' : 'bad';
+    if (res === 'ok') good++;
+    if (res === 'warn') units = true;
+    inp.className = 'num ' + res;
+    if (st) { st.className = 'st ' + res; st.textContent = res === 'ok' ? '✓' : res === 'warn' ? '±' : '✗'; }
+  });
+  if (!tried) { $('#ansmsg').textContent = 'Escriu almenys un resultat per comprovar-lo.'; return; }
+  $('#ansmsg').innerHTML = `<b>${good} de ${tried}</b> correctes.${good === tried ? ' Molt bé!' : ' Revisa els marcats en vermell o groc.'}${units ? '<br><span class="muted">Els marcats en groc són correctes però amb un factor 1000: comprova les unitats (A i no mA, Ω i no kΩ, W i no mW).</span>' : ''}`;
+}
+
+document.querySelectorAll('#seg-lvl button').forEach(b => b.addEventListener('click', () => {
+  state.lvl = b.dataset.v;
+  document.querySelectorAll('#seg-lvl button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  newExercise();
+}));
+$('#btn-new').addEventListener('click', newExercise);
+$('#btn-solve').addEventListener('click', () => { state.shown = 1; renderSteps(); scrollToStep(0); });
+$('#btn-next').addEventListener('click', () => { state.shown = Math.min(state.steps.length, state.shown + 1); renderSteps(); scrollToStep(state.shown - 1); });
+$('#btn-all').addEventListener('click', () => { const from = state.shown; state.shown = state.steps.length; renderSteps(); scrollToStep(from); });
+$('#btn-hide').addEventListener('click', () => { state.shown = 0; renderSteps(); $('#enunciat').scrollIntoView({block: 'start'}); });
+$('#btn-check').addEventListener('click', checkAnswers);
+$('#btn-clear').addEventListener('click', clearAnswers);
+['#ansgen', '#ansres'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); checkAnswers(); } }));
+$('#btn-code').addEventListener('click', () => {
+  const c = parseCode($('#codein').value);
+  $('#codeerr').textContent = '';
+  if (!c || !load(c.n, c.seed)) $('#codeerr').textContent = 'Aquest codi no és vàlid. Ha de tenir la forma CC-6-4821 (de 4 a 10 resistències).';
+  else $('#codein').value = '';
+});
+$('#codein').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-code').click(); });
+$('#btn-copy').addEventListener('click', async () => {
+  const b = $('#btn-copy');
+  try { await navigator.clipboard.writeText(location.href); b.textContent = 'Copiat!'; }
+  catch (e) { b.textContent = 'No s\'ha pogut copiar'; }
+  setTimeout(() => { b.textContent = 'Copia l\'enllaç'; }, 1600);
+});
+
+(function start() {
+  let c = null;
+  try { c = parseCode(decodeURIComponent(location.hash.slice(1))); } catch (e) {}
+  if (!(c && load(c.n, c.seed))) newExercise();
+})();
+</script>
+
+</body>
+</html>
